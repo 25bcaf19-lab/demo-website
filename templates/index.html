@@ -10,11 +10,8 @@
     <h1>Daily Mood Tracker</h1>
     <p class="subtitle">How are you feeling today?</p>
 
-    <!-- FORM: sends data to Flask using POST -->
     <div class="card">
         <form action="/save" method="POST">
-
-            <!-- Mood selection dropdown -->
             <label for="mood">Select your mood:</label>
             <select name="mood" id="mood" required>
                 <option value="">-- Choose --</option>
@@ -25,18 +22,14 @@
                 <option value="Excited 🤩">Excited 🤩</option>
             </select>
 
-            <!-- Note text area -->
             <label for="note">Write a short note about your day:</label>
             <textarea name="note" id="note" rows="4"
                 placeholder="Today I felt this way because..."></textarea>
 
-            <!-- Submit button -->
             <button type="submit">Save Mood</button>
-
         </form>
     </div>
 
-    <!-- PREVIOUS ENTRIES -->
     <h2>Previous Entries</h2>
 
     {% if moods %}

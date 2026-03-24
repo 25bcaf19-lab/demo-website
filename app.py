@@ -5,14 +5,16 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-DATABASE_URL = os.environ.get('DATABASE_URL')  # set this in Vercel env vars
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 def get_conn():
     return psycopg2.connect(DATABASE_URL)
 
-def init_db():
+@app.route('/')
+def index():
     conn = get_conn()
-    conn.cursor().execute('''
+    cur = conn.cursor()
+    cur.execute('''
         CREATE TABLE IF NOT EXISTS moods (
             id   SERIAL PRIMARY KEY,
             mood TEXT,
@@ -21,14 +23,6 @@ def init_db():
         )
     ''')
     conn.commit()
-    conn.close()
-
-init_db()
-
-@app.route('/')
-def index():
-    conn = get_conn()
-    cur = conn.cursor()
     cur.execute('SELECT mood, note, date FROM moods ORDER BY id DESC')
     moods = cur.fetchall()
     conn.close()
@@ -53,3 +47,11 @@ def save():
 
 if __name__ == '__main__':
     app.run(debug=True)
+```
+
+---
+
+**requirements.txt**
+```
+flask
+psycopg2-binary
