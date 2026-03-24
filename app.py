@@ -40,7 +40,7 @@ def save():
     date = datetime.now().strftime('%Y-%m-%d %H:%M')
 
     conn = sqlite3.connect('database.db')
-    conn.execute(gi
+    conn.execute(
         'INSERT INTO moods (mood, note, date) VALUES (?, ?, ?)',
         (mood, note, date)
     )
