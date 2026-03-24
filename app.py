@@ -1,15 +1,20 @@
 from flask import Flask, render_template, request, redirect
-import sqlite3
+import psycopg2
+import os
 from datetime import datetime
 
 app = Flask(__name__)
 
-# ---------- Database setup ----------
+DATABASE_URL = os.environ.get('DATABASE_URL')  # set this in Vercel env vars
+
+def get_conn():
+    return psycopg2.connect(DATABASE_URL)
+
 def init_db():
-    conn = sqlite3.connect('database.db')
-    conn.execute('''
+    conn = get_conn()
+    conn.cursor().execute('''
         CREATE TABLE IF NOT EXISTS moods (
-            id   INTEGER PRIMARY KEY AUTOINCREMENT,
+            id   SERIAL PRIMARY KEY,
             mood TEXT,
             note TEXT,
             date TEXT
@@ -20,28 +25,25 @@ def init_db():
 
 init_db()
 
-# ---------- Routes ----------
-
-# GET / → show the page with all saved moods
 @app.route('/')
 def index():
-    conn = sqlite3.connect('database.db')
-    moods = conn.execute(
-        'SELECT mood, note, date FROM moods ORDER BY id DESC'
-    ).fetchall()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT mood, note, date FROM moods ORDER BY id DESC')
+    moods = cur.fetchall()
     conn.close()
     return render_template('index.html', moods=moods)
 
-# POST /save → save mood and note, then redirect back
 @app.route('/save', methods=['POST'])
 def save():
     mood = request.form['mood']
     note = request.form['note']
     date = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-    conn = sqlite3.connect('database.db')
-    conn.execute(
-        'INSERT INTO moods (mood, note, date) VALUES (?, ?, ?)',
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        'INSERT INTO moods (mood, note, date) VALUES (%s, %s, %s)',
         (mood, note, date)
     )
     conn.commit()

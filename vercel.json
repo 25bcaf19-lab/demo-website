@@ -1,0 +1,14 @@
+{
+  "builds": [{ "src": "app.py", "use": "@vercel/python" }],
+  "routes": [{ "src": "/(.*)", "dest": "app.py" }]
+}
+```
+
+**4. In Vercel dashboard → Settings → Environment Variables, add:**
+```
+DATABASE_URL = your-neon-connection-string
+```
+
+You can get the connection string from the Neon dashboard after creating a project. It looks like:
+```
+postgresql://user:password@host/dbname
