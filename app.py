@@ -1,14 +1,19 @@
 from flask import Flask, render_template, request, redirect
-import sqlite3
+import psycopg2
+import os
 from datetime import datetime
 
 app = Flask(__name__)
 
+# ---------- Database setup ----------
+def get_conn():
+    return psycopg2.connect(os.environ['POSTGRES_URL'])
+
 def init_db():
-    conn = sqlite3.connect('database.db')
-    conn.execute('''
+    conn = get_conn()
+    conn.cursor().execute('''
         CREATE TABLE IF NOT EXISTS moods (
-            id   INTEGER PRIMARY KEY AUTOINCREMENT,
+            id   SERIAL PRIMARY KEY,
             mood TEXT,
             note TEXT,
             date TEXT
@@ -19,12 +24,13 @@ def init_db():
 
 init_db()
 
+# ---------- Routes ----------
 @app.route('/')
 def index():
-    conn = sqlite3.connect('database.db')
-    moods = conn.execute(
-        'SELECT mood, note, date FROM moods ORDER BY id DESC'
-    ).fetchall()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT mood, note, date FROM moods ORDER BY id DESC')
+    moods = cur.fetchall()
     conn.close()
     return render_template('index.html', moods=moods)
 
@@ -34,17 +40,18 @@ def save():
     note = request.form['note']
     date = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-    conn = sqlite3.connect('database.db')
-    conn.execute(
-        'INSERT INTO moods (mood, note, date) VALUES (?, ?, ?)',
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        'INSERT INTO moods (mood, note, date) VALUES (%s, %s, %s)',
         (mood, note, date)
     )
     conn.commit()
     conn.close()
 
-    return redirect('/confirmation')  # ← fixed
+    return redirect('/confirmation')
 
-@app.route('/confirmation')  # ← new route
+@app.route('/confirmation')
 def confirmation():
     return render_template('confirmation.html')
 
