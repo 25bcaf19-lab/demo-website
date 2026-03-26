@@ -4,7 +4,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ---------- Database setup ----------
 def init_db():
     conn = sqlite3.connect('database.db')
     conn.execute('''
@@ -20,9 +19,6 @@ def init_db():
 
 init_db()
 
-# ---------- Routes ----------
-
-# GET / → show the page with all saved moods
 @app.route('/')
 def index():
     conn = sqlite3.connect('database.db')
@@ -32,7 +28,6 @@ def index():
     conn.close()
     return render_template('index.html', moods=moods)
 
-# POST /save → save mood and note, then redirect back
 @app.route('/save', methods=['POST'])
 def save():
     mood = request.form['mood']
@@ -47,7 +42,11 @@ def save():
     conn.commit()
     conn.close()
 
-    return redirect('/')
+    return redirect('/confirmation')  # ← fixed
+
+@app.route('/confirmation')  # ← new route
+def confirmation():
+    return render_template('confirmation.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
